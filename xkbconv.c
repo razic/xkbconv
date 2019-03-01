@@ -6,13 +6,14 @@
 #include <wchar.h>
 #include <locale.h>
 
-
-
 struct utf8_to_keycode_data {
-	char ch;
+	wchar_t wc;
+	xkb_keycode_t key;
+	int matched;
 };
 
 void utf8_to_keycode(struct xkb_keymap *keymap, xkb_keycode_t key, void *data);
+void print_utf8_from_keycode(struct xkb_keymap *keymap, xkb_keycode_t key, void *data);
 
 int main(int argc, char **argv)
 {
@@ -30,7 +31,10 @@ int main(int argc, char **argv)
 	struct xkb_keymap *src_keymap;
 	struct xkb_keymap *dst_keymap;
 
-	setlocale(LC_ALL, "");
+	if (setlocale(LC_ALL, "") == NULL) {
+		perror("setlocale");
+		exit(EXIT_FAILURE);
+	}
 
 	// option parsing
 	static struct option long_options[] =
@@ -116,28 +120,50 @@ int main(int argc, char **argv)
 	wint_t wc;
 	while((wc = fgetwc(stdin)) != WEOF)
 	{
+		struct utf8_to_keycode_data data = {
+			wc: wc
+		};
+		xkb_keymap_key_for_each(src_keymap, utf8_to_keycode, &data);
+		if (data.matched == 1)
+			xkb_keymap_key_for_each(dst_keymap, print_utf8_from_keycode, &data);
 	}
 
 	return EXIT_SUCCESS;
 }
-
 void utf8_to_keycode(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
 {
+	struct xkb_state *state;
+	state = xkb_state_new(keymap);
+	if (!state) return;
+
+	char *utf8key;
+	int size;
+	size = xkb_state_key_get_utf8(state, key, NULL, 0) + 1;
+	if (size <= 1) return;
+	utf8key = malloc(size);
+
+	xkb_state_key_get_utf8(state, key, utf8key, size);
+
+	if ((int)*utf8key == ((struct utf8_to_keycode_data *)data)->wc) {
+		((struct utf8_to_keycode_data *)data)->key = key;
+		((struct utf8_to_keycode_data *)data)->matched = 1;
+	}
 }
 
-//void keymap_iter(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
-//{
-//	char *buffer;
-//	int size;
-//	struct xkb_state *state;
-//
-//	state = xkb_state_new(keymap);
-//	if (!state) return;
-//
-//	size = xkb_state_key_get_utf8(state,key,NULL,0) + 1;
-//	buffer = malloc(size);
-//	xkb_state_key_get_utf8(state, key, buffer, size);
-//
-//	printf("%s: %s\n", xkb_keymap_key_get_name(keymap, key), buffer);
-//}
-//
+void print_utf8_from_keycode(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
+{
+	if (key != ((struct utf8_to_keycode_data *)data)->key) return;
+
+	struct xkb_state *state;
+	state = xkb_state_new(keymap);
+	if (!state) return;
+
+	char *utf8key;
+	int size;
+	size = xkb_state_key_get_utf8(state, key, NULL, 0) + 1;
+	if (size <= 1) return;
+	utf8key = malloc(size);
+
+	xkb_state_key_get_utf8(state, key, utf8key, size);
+	printf("%s", utf8key);
+}
