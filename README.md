@@ -1,18 +1,36 @@
 # xkbconv
 
-## requirements
+Bit of a strange, albeit useful tool.
 
-```bash
-apt-get install -y  libxkbcommon-dev libxkbcommon-x11-dev
-```
+This is likely only useful if your software-based keyboard layout something
+other than QWERTY, and want to configure Yubikey's [static password features].
 
-## build from source
+## Building
+
+Install dependencies:
+
+* libxkbcommon
+
+Run this command:
 
 ```
 make
 ```
 
-## usage
+There will be an executable in the current working directory.
+
+## Usage
+
+You supply three things:
+
+* Source keyboard context
+* Destination keyboard context
+* Text
+
+The source, and destination keyboard contexts, are virtual keyboards. They
+represent the model, layout, variant, and options belonging to a keyboard. If
+you're unsure about what these mean, please refer to the [xkbcommon]
+documentation.
 
 ```
 xkbconv \
@@ -26,3 +44,7 @@ xkbconv \
   --dst-options ''
   < file.txt
 ```
+
+[static password features]: https://support.yubico.com/support/solutions/articles/15000006480-understanding-core-static-password-features
+[scancodes]: https://en.wikipedia.org/wiki/Scancode
+[xkbcommon]: https://xkbcommon.org/doc/current/
