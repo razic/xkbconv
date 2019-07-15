@@ -2,7 +2,7 @@
 
 Bit of a strange, albeit useful tool.
 
-This is likely only useful if your software-based keyboard layout something
+This is likely only useful if your software-based keyboard layout is something
 other than QWERTY, and want to configure Yubikey's [static password features].
 
 ## Building
