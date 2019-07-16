@@ -30,7 +30,8 @@ You supply three things:
 The source, and destination keyboard contexts, are virtual keyboards. They
 represent the model, layout, variant, and options belonging to a keyboard. If
 you're unsure about what these mean, please refer to the [xkbcommon]
-documentation.
+documentation. The text should be limited to the ASCII character set, and
+passed on STDIN.
 
 ```
 xkbconv \
@@ -44,6 +45,10 @@ xkbconv \
   --dst-options ''
   < file.txt
 ```
+
+For each character in the input text, the program will find the corresponding
+[scancode] in the source keyboard context, and output the ASCII character with
+the same keycode in the destination keyboard context.
 
 [static password features]: https://support.yubico.com/support/solutions/articles/15000006480-understanding-core-static-password-features
 [scancodes]: https://en.wikipedia.org/wiki/Scancode
